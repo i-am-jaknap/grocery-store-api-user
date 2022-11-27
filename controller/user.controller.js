@@ -10,14 +10,15 @@ exports.signup= async(req,res)=>{
 
     const user=req.body;
 
-    //check if email is already registered
-    const oldUser=await User.findOne({email:user.email});
-    if(oldUser){
-        return res.status(409).json({message:'User already exist. Please login.'})
-    }
-
-    //if not then create a new user with the given data
     try{
+
+        //check if email is already registered
+        const oldUser=await User.findOne({email:user.email});
+        if(oldUser){
+            return res.status(409).json({message:'User already exist. Please login.'})
+        }
+
+        //if not then create a new user with the given data
         const newUser=new User({... user})
         const data=await newUser.save();
         res.json(data);
@@ -59,4 +60,19 @@ exports.signin=async (req,res)=>{
         });
 
     res.status(201).json({token})
+}
+
+exports.fetch=async (req,res)=>{
+    const email=req.params.value;
+    try{
+        const user= await User.findOne({email:email},{orders:0,cart:0});
+        if(user){
+          return res.status(200).json(user);
+        }
+
+        return res.status(404).json({message:"Invalid email"});
+
+    }catch(err){
+        return res.status(500).json({message:'Something went wrong.'})
+    }
 }

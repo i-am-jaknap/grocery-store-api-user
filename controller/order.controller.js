@@ -34,11 +34,11 @@ exports.create= async (req,res,next)=>{
 
 exports.update=async(req,res)=>{
     try{
-        const orders=await Order.findOneAndUpdate({order_id:req.params.orderId},{$set:{status:req.body.status}});
-        await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":req.body.status}},
+        const orders=await Order.findOneAndUpdate({order_id:req.params.orderId},{$set:{status:'Cancel'}});
+        await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":"Cancel"}},
         {arrayFilters:[{'order.order_id':req.params.orderId}]});
 
-        res.status(204).json({'message':'Order cancelled'});
+        res.status(200).json({'message':'Order cancelled'});
         
     }catch(err){
         res.status(400).json({"message":"Invalid order."});
@@ -86,44 +86,6 @@ exports.fetch=async(req,res,next)=>{
         }   
                
     }
-    //otherwise return all the orders
-    try{
-        const orders=await Order.find();
-        return res.status(200).json(orders);  
-    }catch(err){
-        return next(err);
-    }
+  
 
-
-}
-
-exports.delete=async(req,res)=>{
-    try{
-        const orderId=req.params.orderId;
-        const deletedOrder= await Order.findOneAndDelete({order_id:orderId})
-        console.log(deletedOrder);
-
-        if(deletedOrder){
-            const upadteResult= await User.updateOne({
-                                                        email:deletedOrder.user
-                                                     },
-                                                    {$pull:
-                                                        {orders:
-                                                            {
-                                                                order:deletedOrder.order_id
-                                                            }
-                                                        }
-                                                    });
-
-            if(upadteResult.modifiedCount>0){
-                return res.status(200).json({'message':"Order deleted successfully."});
-            }
-        }      
-
-        return res.status(404).json({'message':"Invalid order id."});
-
-    }catch(err){
-        return res.status(500).json({message:err.message})
-    }
-   
 }

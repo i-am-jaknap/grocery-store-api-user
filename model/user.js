@@ -34,6 +34,10 @@ const userSchema=new Schema({
         maxLength:[30,'Password should be at most 30 letters long'],
         required:[true,'Password is required.'],
     },
+    profile_pic:{
+        type:String,
+        default:'',
+    },
     address:{
         type:String,
     },
