@@ -8,6 +8,7 @@ module.exports= async (req,res,next)=>{
         const decodedToken=jwt.verify(token, process.env.SECRET_KEY);
         const email=decodedToken.email;
 
+
         if(email){
             const user= await User.findOne({email:email},{status:1,_id:0});
 
@@ -17,7 +18,7 @@ module.exports= async (req,res,next)=>{
 
             //check if user is active or not
             //if active then send the request further
-            if(admin.status){
+            if(user.status){
                return next();
             }
 
