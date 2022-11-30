@@ -38,18 +38,46 @@ const userSchema=new Schema({
         type:String,
         default:'',
     },
+    status:{
+        type:Boolean,
+        default:true,
+    },
+    
     address:{
         type:String,
     },
     orders:{
-        type:[{order_id:String,product:String, price:Number, quantity:Number, status:String, image:String, status:String, description:String}],
+        type:[ new Schema
+                ({  order_id:String,
+                    product:String,
+                    product_id:String, 
+                    rate:Number,
+                    quantity:Number, 
+                    status:String, 
+                    image:String, 
+                    status:String, 
+                    description:String,
+                },
+                {versionKey:false,timestamps:true})
+            ],
 
     },
     cart:{
-        type:[{cart_item_id:String,product:String,price:Number,image:String,description:String}],
+        type:[
+                new Schema
+                ({  cart_item_id:String,
+                    product_id:String,
+                    product:String,
+                    rate:Number,
+                    image:String,
+                    description:String,
+                },
+                {versionKey:false,timestamps:true})
+            
+        ],
     }
 
-},{versionKey:false});
+},{versionKey:false,timestamps:true});
 
 userSchema.pre('save',  function(next){
 

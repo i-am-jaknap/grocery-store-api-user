@@ -20,8 +20,9 @@ exports.signup= async(req,res)=>{
 
         //if not then create a new user with the given data
         const newUser=new User({... user})
-        const data=await newUser.save();
-        res.json(data);
+        await newUser.save();
+        console.log('login');
+        return res.sendStatus(201);
 
     }catch(err){
         let errors={};
@@ -29,7 +30,7 @@ exports.signup= async(req,res)=>{
         for(let e in err.errors){
             errors[e]=err.errors[e].message;
         }
-        res.status(400).json(errors);
+       return  res.status(400).json(errors);
     }   
 }
 
@@ -44,6 +45,11 @@ exports.signin=async (req,res)=>{
 
     if(!user){
         return res.status(401).json({message:"Email or password is wrong."});
+    }
+
+    //check if user's status
+    if(!user.status){
+        return res.status(401).json({message:"User is not active."});
     }
 
     //check if password matches
@@ -65,7 +71,7 @@ exports.signin=async (req,res)=>{
 exports.fetch=async (req,res)=>{
     const email=req.params.value;
     try{
-        const user= await User.findOne({email:email},{orders:0,cart:0});
+        const user= await User.findOne({email:email},{orders:0,cart:0}).select({createdAt:0,updatedAt:0});
         if(user){
           return res.status(200).json(user);
         }

@@ -3,29 +3,100 @@ const Order = require('../model/order');
 const User=require('../model/user');
 const uuid=require('uuid');
 const order = require('../model/order');
+const Product = require('../model/product');
+
+// exports.create= async (req,res,next)=>{
+//     const data=req.body;
+//     data.order_id=uuid.v4();
+
+//     try{
+       
+//         //making sure that user exists
+//         if(!await User.findOne({email:data.user})){
+//             return res.status(400).json({'message':"Invalid user email."});
+//         }
+
+//         //add the order to the user's order list
+//         await User.updateOne({email:data.user},{$push:{orders:data}});
+//         const orderModel=new Order(data);
+
+//         try{
+//             await orderModel.save();
+//             return res.sendStatus(201);
+
+//         }catch(err){
+//             console.log(err);
+//             return res.status(400).json({message:err.message})
+//         }
+//     }catch(err){
+//         next(err);
+//     }
+// }
+
+
+//order cancel
 
 exports.create= async (req,res,next)=>{
-    const data=req.body;
-    data.order_id=uuid.v4();
+    const data=req.body;  //product_id,user,quantity
+    const order_id=uuid.v4();
+
+    //destucturing the payload
+    const product_id=data.product_id;
+    const user=data.user;
+    const quantity=Number(data.quantity);
+
+    if(!product_id || !user || !quantity){
+        return res.sendStatus(400);
+    }
 
     try{
        
-        //making shure that user exists
+        //making sure that user exists
         if(!await User.findOne({email:data.user})){
             return res.status(400).json({'message':"Invalid user email."});
         }
 
-        //add the order to the user's order list
-        await User.updateOne({email:data.user},{$push:{orders:data}});
-        const orderModel=new Order(data);
+
+        //finding the product from the product document
+        const product=await Product.findById({_id:data.product_id});    
+
+        //making sure that protuct is not null
+        if(!product){
+            return res.sendStatus(400);
+         }
+        
+        //checking stock availability
+        if(product.stock < quantity){
+            return res.status(307).json({'message':"Out of Stock"});
+        };
+               
+        //making the order data
+        const product_image=product.images[0] || '';
+        const orderData={
+                        order_id:order_id,
+                        product_id:product._id,
+                        product:product.name,
+                        rate:product.rate,
+                        quantity:quantity,
+                        status:'pending',
+                        image:product_image,
+                        description:product.description,
+                        user:user
+                    }
 
         try{
-            const savedDoc= await orderModel.save();
-            res.status(201).json(savedDoc);
+            //add the order to the user's order list
+            await User.updateOne({email:user},{$push:{orders:orderData}});
+            const orderModel=new Order(orderData);
+            await orderModel.save();
+
+            //decreasing the stock
+            await Product.updateOne({_id:product_id},{$inc:{stock:-quantity}});
+            return res.sendStatus(201);
 
         }catch(err){
             console.log(err);
-            res.status(400).json({message:err.message})
+            return res.status(400).json({message:err.message})
         }
     }catch(err){
         next(err);
@@ -38,7 +109,7 @@ exports.update=async(req,res)=>{
         await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":"Cancel"}},
         {arrayFilters:[{'order.order_id':req.params.orderId}]});
 
-        res.status(200).json({'message':'Order cancelled'});
+        res.status(204);
         
     }catch(err){
         res.status(400).json({"message":"Invalid order."});
@@ -57,14 +128,15 @@ exports.fetch=async(req,res,next)=>{
     //finding and sending the order based on order id
     if( (using==='' && value) || (using ==="order_id" && value)){
         try{
-            const order= await Order.findOne({order_id:value});
+            const order= await Order.findOne({order_id:value})
+                                    .sort({createdAt:-1,updatedAt:-1})
+                                    .select({createdAt:0,updatedAt:0,_id:0});;
             //check if any order found
             if(order){
                 return res.status(200).json(order);  
             }
 
             return res.status(404).json({message:"invalid order id."});  
-
              
         }catch(err){
             next(err);
@@ -74,7 +146,9 @@ exports.fetch=async(req,res,next)=>{
     }else if(using === 'email' && value){
 
         try{
-            const orders=await User.findOne({email:value},{"orders":1,_id:0});
+            const orders=await User.findOne({email:value},{"orders._id":0,_id:0,"orders.createdAt":0,"orders.updatedAt":0})
+                                    .sort({createdAt:-1,updatedAt:-1})
+                                    .select({createdAt:0,updatedAt:0});
 
             if(orders){
                 return res.status(200).json(orders.orders);

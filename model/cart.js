@@ -6,13 +6,18 @@ const cartSchema=new Schema({
         type:String,
         unique:true,
     },
+    product_id:{
+        type:String,
+        required:[true,"Product id is required."]
+    }
+    ,
  
     product:{
         type:String,
         required:[true,"Product name is required."]
     },
 
-    price:{
+    rate:{
         type:Number,
         required:[true,"Product price is required."],
     },
@@ -23,7 +28,8 @@ const cartSchema=new Schema({
 
     description:{
         type:String,   
-        lowercase: true    
+        lowercase: true,
+        default:'' 
     },
     
     user:{
@@ -34,6 +40,6 @@ const cartSchema=new Schema({
         trim:true,
     },
 
-},{versionKey:false});
+},{versionKey:false,timestamps:true});
 
 module.exports= mongoose.model('Cart',cartSchema);

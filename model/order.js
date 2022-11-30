@@ -12,7 +12,12 @@ const orderSchema=new Schema({
         required:[true,"Product name is required."]
     },
 
-    price:{
+    product_id:{
+        type:String,
+        required:[true,"Product id is required."]
+    },
+
+    rate:{
         type:Number,
         required:[true,"Product price is required."],
     },
@@ -33,9 +38,10 @@ const orderSchema=new Schema({
     },
 
     description:{
-        type:String,        
+        type:String,   
+        lowercase: true,
+        default:'' 
     },
-
     user:{
         type:Schema.Types.String,
         require:[true,'Email is required.'],
@@ -44,7 +50,7 @@ const orderSchema=new Schema({
         trim:true,
     }
 
-},{versionKey:false});
+},{versionKey:false,timestamps:true});
 
 orderSchema.pre('save',function(next){
     // console.log('pre save',this);

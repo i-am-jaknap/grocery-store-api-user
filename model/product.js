@@ -1,16 +1,25 @@
 const mongoose = require('mongoose');
 const Schema= mongoose.Schema;
+const uuid=require('uuid');
+
 
 const productSchema= new Schema({
+
+    product_id:{
+        type:String,
+        default:uuid.v4(),
+        unique:true
+    },
+
     name:{
         type:String,
         required:[true,'Product name is required.']
     },
-    price:{
+    rate:{
         type:Schema.Types.Number,
         required:[true,'Price is required.']
     },
-    quantity:{
+    stock:{
         type:Schema.Types.Number,
         required:[true,'Quantity is required.']
 
@@ -29,9 +38,15 @@ const productSchema= new Schema({
          message:'Product category is required.',
         } 
     },
+    description:{
+        type:String,
+        required:[true,"Product description is required."],
+        trim:true
+    },
+
     images:Schema.Types.Array || String,
 
-},{versionKey:false});
+},{versionKey:false,timestamps:true});
 
 const Product=mongoose.model('Product',productSchema);
 
