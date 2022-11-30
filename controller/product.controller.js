@@ -67,7 +67,6 @@ const fetchAll= async (options)=>{
         let start=parseInt( options.start || 0);
         
         //if per page and start page is less than or equal to 0
-        start=start <=0 ? 1 : start;
         perPage <= 0 ? 10 : perPage;
 
 
