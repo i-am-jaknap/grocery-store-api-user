@@ -86,7 +86,7 @@ exports.create=async(req,res,next)=>{
         }
 
         //finding the product from the product document
-        const product=await Product.findById({_id:data.product_id});
+        const product=await Product.findOne({product_id:data.product_id});
         if(!product){
            return res.sendStatus(400);
         }
