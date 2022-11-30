@@ -7,7 +7,6 @@ const productSchema= new Schema({
 
     product_id:{
         type:String,
-        default:uuid.v4(),
         unique:true
     },
 

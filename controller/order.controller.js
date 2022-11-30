@@ -58,7 +58,7 @@ exports.create= async (req,res,next)=>{
 
 
         //finding the product from the product document
-        const product=await Product.findOne({product_id:data.product_id});    
+        const product=await Product.findOne({product_id:product_id});    
 
         //making sure that protuct is not null
         if(!product){
@@ -74,7 +74,7 @@ exports.create= async (req,res,next)=>{
         const product_image=product.images[0] || '';
         const orderData={
                         order_id:order_id,
-                        product_id:product._id,
+                        product_id:product.product_id,
                         product:product.name,
                         rate:product.rate,
                         quantity:quantity,
