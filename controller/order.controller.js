@@ -91,7 +91,7 @@ exports.create= async (req,res,next)=>{
             await orderModel.save();
 
             //decreasing the stock
-            await Product.updateOne({_id:product_id},{$inc:{stock:-quantity}});
+            await Product.updateOne({product_id:product_id},{$inc:{stock:-quantity}});
             return res.sendStatus(201);
 
         }catch(err){
