@@ -91,7 +91,7 @@ exports.create= async (req,res,next)=>{
 
             //decreasing the stock
             await Product.updateOne({product_id:product_id},{$inc:{stock:-quantity}});
-            
+
             //saving the stock in stock model
             await orderModel.save();
 
@@ -112,7 +112,7 @@ exports.update=async(req,res)=>{
         await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":"Cancel"}},
         {arrayFilters:[{'order.order_id':req.params.orderId}]});
 
-        res.status(204);
+        res.sendStatus(204);
         
     }catch(err){
         res.status(400).json({"message":"Invalid order."});
