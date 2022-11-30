@@ -88,10 +88,13 @@ exports.create= async (req,res,next)=>{
             //add the order to the user's order list
             await User.updateOne({email:user},{$push:{orders:orderData}});
             const orderModel=new Order(orderData);
-            await orderModel.save();
 
             //decreasing the stock
             await Product.updateOne({product_id:product_id},{$inc:{stock:-quantity}});
+            
+            //saving the stock in stock model
+            await orderModel.save();
+
             return res.sendStatus(201);
 
         }catch(err){
