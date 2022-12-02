@@ -9,8 +9,7 @@ const cartSchema=new Schema({
     product_id:{
         type:String,
         required:[true,"Product id is required."]
-    }
-    ,
+    },
  
     product:{
         type:String,
@@ -21,17 +20,16 @@ const cartSchema=new Schema({
         type:Number,
         required:[true,"Product price is required."],
     },
+
+    quantity:{
+        type:Number,
+        required:[true,"Quantity is required."]
+    },
     
     image:{
         type:String,
     },
 
-    description:{
-        type:String,   
-        lowercase: true,
-        default:'' 
-    },
-    
     user:{
         type:Schema.Types.String,
         require:[true,'Email is required.'],

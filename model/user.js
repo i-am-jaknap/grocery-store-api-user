@@ -49,14 +49,34 @@ const userSchema=new Schema({
     orders:{
         type:[ new Schema
                 ({  order_id:String,
-                    product:String,
-                    product_id:String, 
-                    rate:Number,
-                    quantity:Number, 
+
+                    products:[new Schema({
+                        product_id:{
+                            type:String,
+                            required:[true,"Product id is required."]
+                        },
+            
+                        product:{
+                            type:String,
+                            required:[true,"Product name is required."]
+                        },
+            
+                        rate:{
+                            type:Number,
+                            required:[true,"Product rate is required."],
+                        },
+            
+                        quantity:{
+                            type:Number,
+                            required:[true,"Quantity is required."],
+                        },
+            
+                        image:{
+                            type:String,
+                        },
+                    },{versionKey:false})],
                     status:String, 
-                    image:String, 
-                    status:String, 
-                    description:String,
+
                 },
                 {versionKey:false,timestamps:true})
             ],
@@ -69,8 +89,8 @@ const userSchema=new Schema({
                     product_id:String,
                     product:String,
                     rate:Number,
+                    quantity:Number,
                     image:String,
-                    description:String,
                 },
                 {versionKey:false,timestamps:true})
             

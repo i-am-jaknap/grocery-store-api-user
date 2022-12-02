@@ -22,7 +22,7 @@ exports.signup= async(req,res)=>{
         const newUser=new User({... user})
         await newUser.save();
         console.log('login');
-        return res.sendStatus(201);
+        return res.status(201).json({message:"Signed up successfully."});
 
     }catch(err){
         let errors={};

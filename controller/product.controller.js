@@ -16,7 +16,7 @@ exports.fetch = async (req,res)=>{
                 const data= await pickHandler.exec(req.query.with);
 
                 if(data.length<=0){
-                    return res.sendStatus(404);
+                    return res.status(404).json({message:"Bad request"});
                 }
                 res.json(data);
             }catch(err){
@@ -27,7 +27,7 @@ exports.fetch = async (req,res)=>{
         try{
             const data= await pickHandler.exec('id');
             if(data.length<=0){
-                return res.sendStatus(404);
+                return res.status(404).json({message:"Invalid id."});
             }
             return res.json(data);
         }catch(err){

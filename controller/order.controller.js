@@ -2,105 +2,63 @@ const PickHandler=require('../lib/pick_handler');
 const Order = require('../model/order');
 const User=require('../model/user');
 const uuid=require('uuid');
-const order = require('../model/order');
 const Product = require('../model/product');
+const { findOneAndUpdate } = require('../model/order');
 
-// exports.create= async (req,res,next)=>{
-//     const data=req.body;
-//     data.order_id=uuid.v4();
-
-//     try{
-       
-//         //making sure that user exists
-//         if(!await User.findOne({email:data.user})){
-//             return res.status(400).json({'message':"Invalid user email."});
-//         }
-
-//         //add the order to the user's order list
-//         await User.updateOne({email:data.user},{$push:{orders:data}});
-//         const orderModel=new Order(data);
-
-//         try{
-//             await orderModel.save();
-//             return res.sendStatus(201);
-
-//         }catch(err){
-//             console.log(err);
-//             return res.status(400).json({message:err.message})
-//         }
-//     }catch(err){
-//         next(err);
-//     }
-// }
-
-
-//order cancel
 
 exports.create= async (req,res,next)=>{
-    const data=req.body;  //product_id,user,quantity
+    const user_email=req.body.user;  //user
     const order_id=uuid.v4();
 
-    //destucturing the payload
-    const product_id=data.product_id;
-    const user=data.user;
-    const quantity=Number(data.quantity);
-
-    if(!product_id || !user || !quantity){
-        return res.sendStatus(400);
+    
+    //if user is not send by the user
+    if(!user_email ){
+        return res.status(400).json({message:"Invalid email"});
     }
 
     try{
-       
-        //making sure that user exists
-        if(!await User.findOne({email:data.user})){
-            return res.status(400).json({'message':"Invalid user email."});
+       const cart= await User.findOne({email:user_email}).select({cart:1,_id:0})
+
+        if(cart  === null){
+            return res.status(400).json({message:"Invalid user."});
         }
 
 
-        //finding the product from the product document
-        const product=await Product.findOne({product_id:product_id});    
+       // making sure that cart is not null and its length is more than 0
+       if( cart.cart.length){
+            let total=0;
+            for(let cart_item of cart.cart){
+                total+= cart_item.quantity*cart_item.rate
+            }
+            
+            const order={
+                order_id:order_id,
+                products:cart.cart,
+                status:'pending',
+                user:user_email,
+            };
+    
+            //adding the order created above
+            const user=await User.findOneAndUpdate({email:user_email},{$push:{orders:order}})
 
-        //making sure that protuct is not null
-        if(!product){
-            return res.sendStatus(400);
-         }
-        
-        //checking stock availability
-        if(product.stock < quantity){
-            return res.status(307).json({'message':"Out of Stock"});
-        };
-               
-        //making the order data
-        const product_image=product.images[0] || '';
-        const orderData={
-                        order_id:order_id,
-                        product_id:product.product_id,
-                        product:product.name,
-                        rate:product.rate,
-                        quantity:quantity,
-                        status:'pending',
-                        image:product_image,
-                        description:product.description,
-                        user:user
-                    }
+            //addding the order to the separate order collection
+            const newOrder=new Order({
+                products:cart.cart,
+                order_id:order_id,
+                status:"pending",
+                user:user_email
+            });
+            newOrder.save();
+            
 
-        try{
-            //add the order to the user's order list
-            await User.updateOne({email:user},{$push:{orders:orderData}});
-            const orderModel=new Order(orderData);
+            ///now clear the cart
+            await User.updateOne({email:user_email},{$pull:{cart:{$exists:true}}});
 
-            //decreasing the stock
-            await Product.updateOne({product_id:product_id},{$inc:{stock:-quantity}});
-
-            //saving the stock in stock model
-            await orderModel.save();
-
-            return res.sendStatus(201);
-
-        }catch(err){
-            console.log(err);
-            return res.status(400).json({message:err.message})
+            return res.status(200).json({message:"Order created"});
         }
+
+        return res.status(200).json({message:"Cart is emptly."});
+
     }catch(err){
         next(err);
     }
@@ -112,7 +70,7 @@ exports.update=async(req,res)=>{
         await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":"Cancel"}},
         {arrayFilters:[{'order.order_id':req.params.orderId}]});
 
-        res.sendStatus(204);
+        res.send(200).json({message:"Order cancelled."});
         
     }catch(err){
         res.status(400).json({"message":"Invalid order."});

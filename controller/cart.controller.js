@@ -43,40 +43,10 @@ exports.fetch=async(req,res,next)=>{
 
 }
 
-// //add to the cart
-// exports.create=async(req,res,next)=>{
-//     const data=req.body;
-//     data.cart_item_id= uuid.v4();
-
-//     try{
-//           //making sure that user exists
-//         if(!await User.findOne({email:data.user})){
-//             return res.status(400).json({'message':"Invalid user email."});
-//         }
-
-//         //add the cart to the user's cart list
-//          await User.updateOne({email:data.user},{$push:{cart:data}});
-//          const cartModel=new Cart(data);
-
-
-//         try{
-//             await cartModel.save();
-//             return res.sendStatus(201);
-
-//         }catch(err){
-//             console.log(err);
-//             return res.status(400).json({message:err.message})
-//         }
-
-
-//     }catch(err){
-//         return next(err);
-//     }
-// }
 
 //add to the cart
 exports.create=async(req,res,next)=>{
-    const data=req.body;
+    const data=req.body; //product id,user,quantity
     const cart_item_id= uuid.v4();
 
     try{
@@ -88,29 +58,43 @@ exports.create=async(req,res,next)=>{
         //finding the product from the product document
         const product=await Product.findOne({product_id:data.product_id});
         if(!product){
-           return res.sendStatus(400);
+           return res.status(400).json({'message':"Invalid product id."});
         }
+
+       const updatedUser=await User.findOneAndUpdate({email:data.user,"cart.product_id":data.product_id},
+                              {
+                                $inc:{"cart.$.quantity":data.quantity}
+                              }
+                            )
+
+        if(updatedUser){
+            console.log(updatedUser)
+            return res.status(201).json({message:"Product added to the cart"});
+        }
+
+        console.log(updatedUser)
+
         
         const product_image=product.images[0] || '';
-        const cartData ={product:product.name,
-                                product_id:product._id,
+        const cartData ={       cart_item_id:cart_item_id,
+                                product_id:product.product_id,
+                                product:product.name,
                                 rate:product.rate,
-                                cart_item_id:cart_item_id,
+                                quantity:data.quantity,
                                 image:product_image,
-                                description:product.description,
-                                user:data.user};
+                        };
+
         try{
-             //add the cart to the user's cart list
+            //add the cart to the user's cart list
             await User.updateOne({email:data.user},{$push:{cart:cartData}});
             const cart=new Cart(cartData);
             await cart.save();
-            return res.sendStatus(201);
-
+            return res.status(201).json({message:"Product added to the cart"});
         }catch(err){
             console.log(err);
             return res.status(400).json({message:err.message})
         }
-
+    
     }catch(err){
         return next(err);
     }
@@ -138,7 +122,7 @@ exports.delete=async(req,res,next)=>{
 
 
             if(upadteResult.modifiedCount>0){
-                return res.sendStatus(204);                
+                return res.status(200).json({message:"Item removed from the cart."});                
             }
         }      
 
