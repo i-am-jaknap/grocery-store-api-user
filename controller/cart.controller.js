@@ -61,6 +61,7 @@ exports.create=async(req,res,next)=>{
            return res.status(400).json({'message':"Invalid product id."});
         }
 
+       //add to the cart
        const updatedUser=await User.findOneAndUpdate({email:data.user,"cart.product_id":data.product_id},
                               {
                                 $inc:{"cart.$.quantity":data.quantity}
@@ -103,30 +104,29 @@ exports.create=async(req,res,next)=>{
 //remove from the cart
 exports.delete=async(req,res,next)=>{
     try{
-        const cartItemId=req.params.value;
-        const deletedCartItem= await Cart.findOneAndDelete({cart_item_id:cartItemId});
-        
+        const cartItemId=req.body.cart_item_id;
+        const user=req.body.user;
+        console.log(cartItemId);
+        console.log(user);
 
-        if(deletedCartItem){
+        if(cartItemId && user){
             const upadteResult= await User.updateOne({
-                                                        email:deletedCartItem.user
-                                                     },
+                                                        email:user
+                                                    },
                                                     {$pull:
                                                         {cart:
                                                             {
-                                                                cart_item_id:deletedCartItem.cart_item_id
+                                                                cart_item_id:cartItemId
                                                             }
                                                         }
                                                     });
-                                                    
-
-
+            
             if(upadteResult.modifiedCount>0){
-                return res.status(200).json({message:"Item removed from the cart."});                
-            }
-        }      
+            return res.status(200).json({message:"Item removed from the cart."});                
+            }   
+        }  
 
-        return res.status(404).json({'message':"Invalid cart item id."});
+        return res.status(404).json({'message':"Invalid cart item id or user"});
 
     }catch(err){
         console.log("error",err );

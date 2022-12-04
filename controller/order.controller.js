@@ -3,7 +3,6 @@ const Order = require('../model/order');
 const User=require('../model/user');
 const uuid=require('uuid');
 const Product = require('../model/product');
-const { findOneAndUpdate } = require('../model/order');
 
 
 exports.create= async (req,res,next)=>{
@@ -20,17 +19,28 @@ exports.create= async (req,res,next)=>{
        const cart= await User.findOne({email:user_email}).select({cart:1,_id:0})
 
         if(cart  === null){
-            return res.status(400).json({message:"Invalid user."});
+            return res.status(404).json({message:"Invalid user."});
         }
 
 
        // making sure that cart is not null and its length is more than 0
-       if( cart.cart.length){
-            let total=0;
+       if(cart.cart.length){
             for(let cart_item of cart.cart){
-                total+= cart_item.quantity*cart_item.rate
+                console.log(cart_item)
+                //cheching if product out of stock
+                const product=await Product.findOne({product_id:cart_item.product_id})
+                if(product.stock < cart_item.quantity){
+                    return res.status(400).json({message: 'Product ' + product.name + " out of stock."})
+                }
+                //if not then decrease the stock
+                await Product.updateOne({product_id:cart_item.product_id},{$inc:{
+                    stock: -cart_item.quantity
+                }});
             }
-            
+
+      
+
+             //creating the order
             const order={
                 order_id:order_id,
                 products:cart.cart,
