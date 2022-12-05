@@ -70,6 +70,7 @@ exports.create= async (req,res,next)=>{
         return res.status(200).json({message:"Cart is emptly."});
 
     }catch(err){
+        console.log(err)
         next(err);
     }
 }
