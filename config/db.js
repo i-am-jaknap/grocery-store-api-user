@@ -15,14 +15,32 @@ mongoose.connection.on('connecting',()=>{
 });
 
 
-mongoose.connect(mongo.uri)
-    .then(()=>{
-        console.log('MongoDB connected successfully.',mongo.uri);
-    }).catch(err=>{
-        console.log('Error connecting the database.\n',err.message)
-    })
 
-exports.connect=()=>{
-    return mongoose.connection;
-}
+exports.connectDB = async () => {
+    try {
+      const conn = await mongoose.connect(mongo.uri);
+      console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+      console.log(error);
+      process.exit(1);
+    }
+  }
+
+//Connect to the database before listening
+// connectDB().then(() => {
+//     app.listen(PORT, () => {
+//         console.log("listening for requests");
+//     })
+// })
+
+// mongoose.connect(mongo.uri)
+//     .then(()=>{
+//         console.log('MongoDB connected successfully.',mongo.uri);
+//     }).catch(err=>{
+//         console.log('Error connecting the database.\n',err.message)
+//     })
+
+// exports.connect=()=>{
+//     return mongoose.connection;
+// }
 
