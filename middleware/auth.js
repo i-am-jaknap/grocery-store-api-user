@@ -36,7 +36,7 @@ module.exports= async (req,res,next)=>{
     }catch(err){
         console.log(err);
         res.status(401).json({
-            erorr:new Error('Invalid authorization token.').message
+            message:new Error('Invalid authorization token.').message
         });
     }
 }
