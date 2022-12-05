@@ -30,7 +30,7 @@ exports.create= async (req,res,next)=>{
                 //cheching if product out of stock
                 const product=await Product.findOne({product_id:cart_item.product_id})
                 console.log(product)
-                if(product.stock < cart_item.quantity){
+                if(product && product.stock < cart_item.quantity){
                     return res.status(400).json({message: 'Product ' + product.name + " out of stock."})
                 }
                 //if not then decrease the stock
