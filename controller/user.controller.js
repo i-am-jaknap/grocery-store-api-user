@@ -2,6 +2,18 @@ const {Router}=require('express');
 const User=require('../model/user');
 const jwt=require('jsonwebtoken');
 const bcrypt=require('bcrypt');
+const getDeleter=require('../lib/file_deleter');
+
+
+
+const  { GOOGLE_CLOUD_PRIVATE_KEY ,GOOGLE_CLOUD_BUCKET_NAME,
+    GOOGLE_CLOUD_CLIENT_EMAIL,GOOGLE_CLOUD_PROJECT_ID} = require('../config/vars');
+
+
+const gcDeleter=getDeleter({ GC_PRIVATE_KEY:GOOGLE_CLOUD_PRIVATE_KEY,
+    GC_CLIENT_EMAIL:GOOGLE_CLOUD_CLIENT_EMAIL,
+    GC_BUCKET_NAME:GOOGLE_CLOUD_BUCKET_NAME,GC_PROJECT_ID:GOOGLE_CLOUD_PROJECT_ID
+});
 
 
 const router=Router();
@@ -80,5 +92,45 @@ exports.fetch=async (req,res)=>{
 
     }catch(err){
         return res.status(500).json({message:'Something went wrong.'})
+    }
+}
+
+exports.updateProfilePic=async(req,res)=>{
+    const data=JSON.parse(req.body);
+    const email=req.params.email;
+ 
+    try{
+        //checking if email is provided by the user
+        if(!email){
+            return res.status(400).json({message:"Email is required."})
+        }
+
+        //checking if image is provided by user
+        if(data.profile_pic){
+
+           //checkig if user is valid
+           const user=await User.findOne({email:email});
+           if(!user){
+            return res.status(404).json({message:"Invalid user email"});
+           }
+           console.log(user);
+
+           const updateResult=await User.updateOne({email:email},{$set:{profile_pic:data.profile_pic}});
+
+           if(updateResult.modifiedCount > 0){
+                if(user.profile_pic){
+                    gcDeleter(user.profile_pic)
+                }
+                return res.status(200).json({message:"Profile picture updated successfully."})
+           }
+
+            
+        }else{
+            return res.status(400).json({message:"Profile pic is required"});
+        }
+       
+    }catch(e){
+        console.log(e)
+        return res.status(500).status({message:"Something went wrong."})
     }
 }

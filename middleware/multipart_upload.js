@@ -6,7 +6,7 @@ const {Storage}=require('@google-cloud/storage');
 
 
 //global configuration object
-let config={};
+let config={}; 
 
 //upload on google cloud storage
  async function getGoogleCloudFileReference(GC_PROJECT_ID,GC_PRIVATE_KEY, GC_CLIENT_EMAIL , GC_BUCKET_NAME,FOLDER_NAME,FILE_NAME){
@@ -97,9 +97,13 @@ function mw(req,res,next){
 
    bb.on('file', async (name,file,info)=>{
 
+
         //getting the file name if it exists in the config 
         //or else generating a uniue uuid as a file name and setting the extension name
         let fileName=config.FILENAME || v4() + '.' + info.filename.split('.').pop();
+
+        console.log('uploading',fileName);
+
 
         //creating the fileURL  based on the type of storage preference
         let fileURL;
@@ -148,12 +152,13 @@ function mw(req,res,next){
         
         //uploading the file to intended location
         file.pipe(streamRef);
-
+        
+       
         //setting the form data value 
         //which to be passed further
         if(formdata[name]){
             if(Array.isArray(formdata[name]))
-                formdata[name]=[...formdata,fileURL]
+                formdata[name]=[...formdata[name],fileURL]
             else
                 formdata[name]=Array(formdata[name],fileURL);
         }
@@ -166,7 +171,16 @@ function mw(req,res,next){
     //getting the normal fields
     bb.on('field',(name,value,info)=>{
 
-        formdata[name]=value;
+        //checking if field already available if so then make it an array
+        if(formdata[name]){
+            if(Array.isArray(formdata[name]))
+                formdata[name]=[...formdata[name],value]
+            else
+                formdata[name]=Array(formdata[name],value);
+        }
+        else {
+            formdata[name]=value;
+        }
     })
 
     //handling the error events
