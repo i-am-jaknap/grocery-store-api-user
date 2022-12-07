@@ -106,7 +106,7 @@ exports.fetch=async(req,res,next)=>{
         try{
             const order= await Order.findOne({order_id:value})
                                     .sort({createdAt:-1,updatedAt:-1})
-                                    .select({createdAt:0,updatedAt:0,_id:0});;
+                                    .select({"products.createdAt":0,"products.updatedAt":0,"products._id":0,_id:0});;
             //check if any order found
             if(order){
                 return res.status(200).json(order);  
@@ -122,9 +122,9 @@ exports.fetch=async(req,res,next)=>{
     }else if(using === 'email' && value){
 
         try{
-            const orders=await User.findOne({email:value},{"orders._id":0,_id:0,"orders.createdAt":0,"orders.updatedAt":0})
+            const orders=await User.findOne({email:value},{"orders._id":0,_id:0,"orders.products.createdAt":0,"orders.products.updatedAt":0})
                                     .sort({createdAt:-1,updatedAt:-1})
-                                    .select({createdAt:0,updatedAt:0});
+                                    .select({createdAt:0,updatedAt:0,"orders.products._id":0});
 
             if(orders){
                 return res.status(200).json(orders.orders);
