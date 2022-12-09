@@ -122,7 +122,8 @@ exports.delete=async(req,res,next)=>{
                                                     });
             
             if(upadteResult.modifiedCount>0){
-            return res.status(200).json({message:"Item removed from the cart."});                
+                      console.log(upadteResult)
+                     return res.status(200).json({message:"Item removed from the cart."});                
             }   
         }  
 
