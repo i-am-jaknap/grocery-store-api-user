@@ -24,7 +24,7 @@ module.exports= async (req,res,next)=>{
 
             // or else notify the user
            return res.status(403).json({
-                erorr:new Error('User is not active.').message
+                message:new Error('User is not active.').message
             })
         }
 
