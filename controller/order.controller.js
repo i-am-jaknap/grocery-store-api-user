@@ -84,8 +84,11 @@ exports.update=async(req,res)=>{
         const orders=await Order.findOneAndUpdate({order_id:req.params.orderId},{$set:{status:'Cancel'}});
         await User.findOneAndUpdate({email:orders.user},{$set:{"orders.$[order].status":"Cancel"}},
         {arrayFilters:[{'order.order_id':req.params.orderId}]});
+        
+        ///forgot to reinstate the product
+       // const product= await Product.findOneAndUpdate({"product_id":orders.products})
 
-        res.send(200).json({message:"Order cancelled."});
+        res.status(200).json({message:"Order cancelled."});
         
     }catch(err){
         res.status(400).json({"message":"Invalid order."});
